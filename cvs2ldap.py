@@ -1,28 +1,28 @@
 # -*- coding: utf-8 -*-
 
-# Este script crea ficheros ldif a partir de un fichero cvs con la información
-# del alumnado para:
-# - Añadir usuarios al directorio dentro del organizationalUnit "usuarios".
-# - Añadir a estos usuarios al commonName (cn) "alugrp" del organizationalUnit
+# Este script añade usuarios al directorio ldif y genera ficheros ldif a partir
+# de la información proporcionada mediante un fichero csv. En concreto:
+# - Añade usuarios al directorio dentro del organizationalUnit "usuarios".
+# - Añade a estos usuarios al commonName (cn) "alugrp" del organizationalUnit
 #   (ou) "grupos".
+#
+# Además, crea los directorios donde se montarán las "nubes" (carpetas remotas
+# con NFS) de los usuarios que añade al directorio.
 #
 # Necesita que se le pase a través de la línea de comandos los siguinetes
 # parámetros:
-# - La ruta del fichero CSV.
+# - La ruta del fichero csv.
 # - El siguiente uidNumber libre en el directorio (el gidNumber será el mismo).
+# - Ruta al directorio donde se crean las carpetas remotas de los usuarios.
+# - El delimitador usado en el fichero csv (opcional, por defecto se usa el
+# espacio).
 #
-# En el fichero CSV se necesitan los siguientes campos (no importan mayúsculas
+# En el fichero csv se necesitan los siguientes campos (no importan mayúsculas
 # y minúsculas):
 # - login o username.
 # - password.
 # - nombre o firstname.
 # - apellidos o lastname.
-#
-# El delimitador por defecto del fichero CSV es el espacio aunque se puede
-# indicar otro carácter por la línea de comandos.
-#
-# Por último, el script crea las carpetas remotas par los usuarios ldif en el
-# directorio indicado en la línea de comandos con los permisos apropiados.
 
 
 import argparse
