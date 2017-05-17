@@ -1,0 +1,5 @@
+Scripts utilizados para montar un modelo de aula con Linux Mint como servidor y Linux Mint como cliente.
+
+- cvs2ldap.py: este script añade al directorio de LDAP todos los usuarios leídos de un fichero de entrada CVS.
+- ldapdel.py: elimina todos los usuarios del directorio de LDAP (¡¡¡ES MUY PELIGROSO PUES NO HAY MARCHA ATRÁS!!!).
+- nfs.sh: este script se utiliza para montar carpetas remotas NFS en los clientes.
