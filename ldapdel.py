@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
 
+# Este script no debería usarse más que para vaciar el directorio LDAP.
+#
+# En concreto, borra todas las entradas que pertenecen al objectClass
+# person.
 
 import os
 import shutil
