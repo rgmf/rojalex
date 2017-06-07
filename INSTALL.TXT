@@ -1,0 +1,32 @@
+INSTRUCCIONES PARA INSTALAR EPOPTES Y CSSH EN ROJALEX:
+
+EPOPTES:
+
+Instalación epoptes en el servidor:
+
+$ sudo apt-get install epoptes
+
+Añadir los usuarios que autoricemos a controlar epoptes al grupo epoptes:
+$ gpasswd -a username administrador epoptes
+(si se quiere usar con otros usuarios, como el usuario “profesor” habría que añadirlos también)
+
+Instalación epoptes en los clientes:
+
+Editar el archivo /etc/hosts y añadir la línea:
+10.2.1.254	server
+
+$ sudo apt-get install epoptes-client
+$ sudo epoptes-client -c
+
+Reiniciar el cliente
+
+
+CLUSTER SSH:
+
+En el servidor:
+$ sudo apt-get install clusterssh
+Copiar el archivo “lliurex-admin-clients” en /usr/sbin/
+
+En los clientes:
+$ sudo apt-get install openssh-server
+
