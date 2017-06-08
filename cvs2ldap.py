@@ -4,7 +4,8 @@
 # de la información proporcionada mediante un fichero csv. En concreto:
 # - Añade usuarios al directorio dentro del organizationalUnit "usuarios".
 # - Añade a estos usuarios al commonName (cn) "alugrp" del organizationalUnit
-#   (ou) "grupos".
+#   (ou) "grupos". Es necesario, por tanto, tener en el directorio el ou
+#   "usuarios", el ou "grupos" y dentro de este último el cn "alugrp".
 #
 # Además, crea los directorios donde se montarán las "nubes" (carpetas remotas
 # con NFS) de los usuarios que añade al directorio.
