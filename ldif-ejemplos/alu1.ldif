@@ -1,0 +1,11 @@
+dn: uid=alu1,ou=usuarios,dc=nodomain
+objectClass: person
+objectClass: posixAccount
+uid: alu1
+cn: Alumno1
+sn: Alumno1
+uidNumber: 5001
+gidNumber: 5001
+userPassword: alu1
+loginShell: /bin/bash
+homeDirectory: /home/alu1

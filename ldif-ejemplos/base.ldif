@@ -1,0 +1,9 @@
+dn: ou=usuarios,dc=nodomain
+objectClass: organizationalUnit
+ou: usuarios
+description: Unidad Organizativa para alojar a los usuarios
+
+dn: ou=grupos,dc=nodomain
+objectClass: organizationalUnit
+ou: grupos
+description: Unidad Organizativa para alojar los grupos de usuarios

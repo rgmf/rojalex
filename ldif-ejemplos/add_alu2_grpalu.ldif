@@ -1,0 +1,4 @@
+dn: cn=alugrp,ou=grupos,dc=nodomain
+changetype: modify
+add: memberuid
+memberuid: alu2

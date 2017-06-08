@@ -1,0 +1,4 @@
+dn: cn=alugrp,ou=grupos,dc=nodomain
+objectClass: top
+objectClass: posixGroup
+gidNumber: 10000
