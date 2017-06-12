@@ -3,3 +3,4 @@ Scripts utilizados para montar un modelo de aula con Linux Mint como servidor y 
 - cvs2ldap.py: este script añade al directorio de LDAP todos los usuarios leídos de un fichero de entrada CVS.
 - ldapdel.py: elimina todos los usuarios del directorio de LDAP (¡¡¡ES MUY PELIGROSO PUES NO HAY MARCHA ATRÁS!!!).
 - nfs.sh: este script se utiliza para montar carpetas remotas NFS en los clientes. Este script se puede poner en el directorio /user/local/bin y configurar PAM para que lo ejecute mediante el módulo pam_exec.so. Hay que tener en cuenta que cuando se ejecuta pam_exec.so no existe la variable de entorno $USER pero sí disponemos de $PAM_USER para saber qué usuario ha iniciado sesión.
+- lliurex-admin-clients.bin: este script comprueba los clientes que hay conectados a la red local e inicia sesión ssh en todos ellos (cluster ssh).

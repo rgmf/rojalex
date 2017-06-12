@@ -1,0 +1,141 @@
+* Características
+** Sistema Operativo
+   - SO :: Linux 4.4.0-53-generic.
+   - Distro :: Linux Mint 18.1 (basado en Ubuntu 16.04).
+** Tarjetas de red
+   A lo largo de este documento se van a usar dos interfaces de red que son:
+   - enp0s3 :: interfaz externa con IP variable.
+   - enp0s8 :: interfaz interna con IP fija 10.2.1.254.
+* Configuración
+** Tarjetas de red
+   La tarjeta de red externa obtiene su IP por dhcp. La tarjeta de red interna
+   tendrá la dirección IP fija 10.2.1.254. Para configurar las tarjetas hay que
+   editar el fichero /etc/network/interfaces y escribir lo siguiente:
+
+   auto enp0s3
+   iface enp0s3 inet dhcp
+
+   auto enp0s8
+   iface enp0s8 inet static
+   address 10.2.1.254
+   netmask 255.255.255.0
+   network 10.2.1.0
+   broadcast 10.2.1.255
+** Iptables
+*** Editar archivo /etc/sysctl.conf
+    Descomentar la línea:
+    net.ipv4.ip_forward=1
+*** Configurar reglas 
+    sudo iptables -t nat -A POSTROUTING -o enp0s3 -j MASQUERADE
+    sudo iptables -A FORWARD -i enp0s3 -o enp0s8 -m state --state RELATED,ESTABLISHED -j ACCEPT
+    sudo iptables -A FORWARD -i enp0s8 -o enp0s3 -j ACCEPT
+*** Instalar iptables-persistent
+    Para guardar las reglas de iptables y hacerlas permanentes instalamos este paquete:
+    sudo apt-get install iptables-persistent
+
+    Al instalar nos pregunta si hacemos persistentes las reglas actuales. Responder que sí.
+** Servidor DNS y DHCP (dnsmasq)
+*** Desinstalar network-manager para evitar conflictos:
+   apt-get remove network-manager
+   apt-get purge network-manager
+*** Resolv.conf
+   Añadir a /etc/resolv.conf las DNS de conselleria: (OJO: Cambiar por las DNS de conselleria)
+   echo "nameserver 8.8.8.8" | sudo tee /etc/resolvconf/resolv.conf.d/tail
+   echo "nameserver 8.8.4.4" | sudo tee -a /etc/resolvconf/resolv.conf.d/tail
+*** /etc/hosts
+    En este fichero hay que colocar el contenido seguiente (se puede hace una copia del fichero).
+    127.0.0.1	localhost
+    10.2.1.254	servidor
+
+    Esto obligará a poner servidor en el fichero /etc/hostname.
+*** Instalar dnsmasq
+    sudo apt-get install dnsmasq
+*** /etc/dnsmasq.conf
+    Escribir lo siguiente:
+
+    # DNS CONFIGURATION
+    domain-needed
+    bogus-priv
+    strict-order
+    listen-address=10.2.1.254
+    bind-interfaces
+    
+    # DHCP CONFIGURATION
+    interface=enp0s8
+
+    dhcp-authoritative
+    dhcp-option=option:dns-server,10.2.1.254
+    dhcp-range=10.2.1.100,10.2.1.199,12h
+** LDAP
+*** Instalar openldap
+    sudo apt-get install slapd ldap-utils
+*** Crear la estructura base del directorio
+    Para las pruebas he creado dos organizationalUnit:
+    - ou: usuarios :: donde almacenar usuarios.
+    - ou: grupos :: donde almacenar grupos.
+    Se tienen los ejemplos dentro del proyecto rojalex, en la carpeta 
+    ldif-ejemplos.
+*** Crear grupos
+    Se crea un grupo alugrp dentro del ou "usuarios". Este será el grupo al
+    que se asignan los alumnos creados mediante el script que hay en el
+    proyecto rojalex.
+*** Crear usuarios y añadirlos al grupo alugrp
+    Se hace con el script que hay en el proyecto rojalex.
+** NFS
+*** Instalación
+    apt-get install nfs-kernel-server
+*** Crear carpeta compartida
+    Lo podemos hacer, en el servidor, en la carpeta /var/nfs/compartido.
+    sudo mkdir -p /var/nfs/compartido
+*** Crear carpetas nube de los alumnos
+    Lo hace automáticamente el script cvs2ldap.py y, por tanto, no hay nada
+    que hacer en este punto.
+*** Asignar un propietario a la carpeta compartida
+    TODO ESTO TAMBIÉN LO HACE EL SCRIPT cvs2ldap.py
+
+    Al crear la carpeta anterior, el propietario será root y el grupo root. Lo
+    más restrictivo sería: chown nobody:nogroup /var/nfs/general
+    
+    Vamos a imaginar que queremos que dicha carpeta sea una carpeta remota para
+    un cliente autenticado como alu1 cuyo uid es 5001 y su gid es 5001 también.
+    En este caso, en el servidor, cambiaríamos el propietario de la carpeta 
+    tal que así:
+    sudo chown 5001:5001 /var/nfs/general
+*** Configurando el exports
+    El paso anterior se completa en el fichero /etc/exports donde realmente se
+    indican los permisos que se tienen sobre las carpetas compartidas, desde 
+    que clientes (IP) se puede montar, etc.
+
+    Habría que escribir la línea siguiente en /etc/exports:
+    /var/nfs                 10.2.1.0(rw,sync,no_subtree_check)
+    /var/nfs/compartido      10.2.1.0(ro,sync,no_subtree_check)
+*** Firewall en el servidor
+    Se puede comprobar el estado del firewall en el servidor con la orden:
+    sudo ufw status
+
+    Es importante que no corte el puerto 2049 que es el puerto del servicio
+    NFS. Para permitirlo, si estuviera cortado, en la red 10.2.1.0/24:
+    sudo ufw allow from 10.2.1.0 to any port nfs
+** MDM (Mint Display Manager)
+   Para que no aparezca el listado de usuarios en el DM hacemos dos cosas:
+   - Cambiar el tema desde Panel de configuración -> Ventana de inicio. Ahí
+     elegimos el tema MDModern.
+   - En el fichero /user/share/mdm/defaults.conf, dentro del apartado [Greeter]
+     buscamos la variable Browser y lo ponemos igual a false.
+
+** Epoptes
+*** Instalar
+    sudo apt-get install epoptes
+*** Añadir usuarios al grupo epoptes
+    Añadir los usuarios que autoricemos a controlar epoptes al grupo epoptes:
+    gpasswd -a username administrador epoptes
+
+    (si se quiere usar con otros usuarios, como el usuario “profesor” habría
+    que añadirlos también)
+** Cluster SSH
+*** Instalar
+    sudo apt-get install clusterssh
+*** Copiar lliurex-admin-clients a su destino
+    El script/programita que lanza cluster ssh hay que copiarlo en alguna
+    carpeta apropiada para su ejecución, por ejemplo, dentro de:
+    /usr/local/bin

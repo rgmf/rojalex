@@ -1,0 +1,76 @@
+* LDAP
+** ¿Qué es?
+   Es un servicio de directorio para almacenar, básicamente, información de
+   usuarios y grupos. Podemos decir que es una alternativa a /etc/passwd,
+   /etc/shadow, /etc/group y /etc/gshadow.
+** PosixAccount
+*** uid
+    Es el nombre de usuario en LDAP (nada que ver con los uid de UNIX).
+*** uidNumber
+    Es el número uid de UNIX. ESTE NÚMERO NO PUEDE COINCIDIR CON NINGÚN UID de
+    usuarios locales ni tampoco con otros usuarios LDAP. Lo probé y, aunque 
+    pude crearlo, luego da error en el display manager al escribir usuario y
+    contraseña del usuario LDAP.
+*** gidNumber
+    Es el número gid de UNIX.
+** Problemas resueltos
+*** Warning si no usamos pam_mkhomedir
+    Al autenticarnos en el display manager se muestra un mensaje en el que se
+    informa que el usuario no tiene home y nos pregunta si queremos usar como
+    home la carpeta raíz (/).
+** Comando útiles LDAP
+*** Busca en todo el directorio cuyo domain component es nodomain
+    ldapsearch -x -b dc=nodomain
+*** Añadir un ldif haciendo uso del usuario admin y dc=nodomain
+    Este comando se usa para crear grupos, usuarios, etc. Depende del ldif:
+    ldapadd -x -W -D "cn=admin,dc=nodomain" -f usuario.ldif
+*** Añadir usuarios a grupos con ldapmodify
+    ldapmodify -x -W -D "cn=admin,dc=nodomain" -f add_usuario_grupo.ldif
+*** Eliminar el usuario alu1 del ou: usuarios del dc: nodomain
+    ldapdelete -W -D "cn=admin,dc=nodomain" "uid=alu1,ou=usuarios,dc=nodomain" 
+* NSS
+** ¿Qué es?
+   Name Service Switch es un conmutador de nombres que te permite especificar
+   cómo diferentes tipos de nombre son resueltos (en el fichero de configuración
+   /etc/nsswich.conf). Por ejemplo, podemos decirle cómo resolver nombres de
+   host, nombres de usuario y contraseñas a través de LDAP.
+* PAM
+** ¿Qué es?
+   Maneja la autenticación (comprueba que eres quien dices ser), autorización
+   (da o deniega acceso a servicios dados), sesión, etc. PAM realiza su función
+   en el prompt donde introduces tu contraseña (por ejemplo, en el display 
+   manager como GDM, XDM, KDM o LightDM, por ejemplo).
+   En un entorno con LDAP se suele configurar PAM para comprobar las contraseñas
+   vía servidor LDAP. PAM también maneja cambios de contraseñas, por ejemplo.
+* NFS
+  El usuario root de un sistema puede hacer cualquier operación pero las 
+  carpetas montadas por NFS no son parte del sistema como tal y por defecto
+  el usuario root no puede hacer nada sobre las carpetas montadas por NFS:
+  cambiar permisos, escribir, etc. Hay que configurar, por tanto, NFS para
+  permitir operaciones de todos los usuarios (root incluido).
+** Usuarios y grupos
+  Las carpetas NFS en el servidor tienen asociado un usuario y un grupo que
+  puede ser un usuario LDAP (por ejemplo el uid 5001 y el gid 5001). Cuando
+  el cliente las monta remotamente se aplican los permisos especificados en
+  /etc/exports para el usuario y el grupo de la carpeta.
+
+  A la carpeta compartida le podemos dar como dueño el usuario administrador
+  y como grupo el grupo LDAP creado para los alumnos (el gid 10000 en los
+  ejemplos que usamos).
+** Script al inicio de sesión para crear carpetas remotas y montarlas
+   Para crear/montar carpetas remotas del servidor NFS en el cliente podemos
+   usar un script que lo haga. Un ejemplo:
+   Dentro de la carpeta /usr/local/bin creamos un script como el que tenemos
+   en el repositorio de github.
+
+   Este script lo ejecutamos a través de PAM. Por ejemplo, en 
+   /etc/pam.d/common-account podemos incluir al final la siguiente línea:
+   account optional     pam_exec.so      /usr/local/bin/nfs.sh
+
+   para ejecutar el script que he escrito arriba.
+
+   Como se ve en el script estoy usando una variable de entorno llamada
+   PAM_USER que crea el módulo PAM pam_exec.so (se puede ver la documentación 
+   en: http://www.linux-pam.org/Linux-PAM-html/sag-pam_exec.html
+
+   De esta manera sé qué usuario está iniciando sesión.

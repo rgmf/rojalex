@@ -1,0 +1,69 @@
+#! /bin/bash
+
+set -e
+set +x
+export TEXTDOMAIN="lliurex-cssh"
+PATH="/usr/sbin:/usr/bin:/sbin:/bin"
+
+MSG_LOGIN_USER="RojaleX: Nombre de usuario para conectarte a los equipos"
+MSG_USER="Nombre de usuario:"
+MSG_ERROR_NAME_USER="Error: nombre de usuario vacio"
+MSG_CHECK_MACHINES="Comprobando equipos conectados..."
+MSG_WAITING="Por favor espera..."
+MSG_NO_CLIENTS_ONLINE="No hay equipos conectados"
+MSG_CLIENTS_ONLINE_PART1="Se han encontrado "
+MSG_CLIENTS_ONLINE_PART2=" equipos conectados"
+MSG_CONTINUE="¿Desea continuar?"
+#LANG="es_ES.UTF-8"
+tcos_port="22"
+num_clientes=1
+clients_file="clientes"
+
+# MEJORA: Obtener estos valores del S.O.
+INTERNAL_NETWORK=10.2.1.0
+INTERNAL_MASK=24
+SRV_IP=10.2.1.254
+
+echo "Configuración de Red:"
+echo $INTERNAL_NETWORK
+echo $INTERNAL_MASK
+echo $SRV_IP
+
+#Ask for a user to connect with
+usuario=$(zenity --width="500" --entry --title="$MSG_LOGIN_USER" --text="$MSG_USER")
+#If the user is empty we finish
+	if [ -z $usuario ]
+	then
+		echo "$MSG_ERROR_NAME_USER"
+		exit 1
+	fi
+
+#Obtain registrered active clients
+if [ true ]; then
+	echo "1"
+	nmap -sS -p$tcos_port -oG $clients_file $INTERNAL_NETWORK"/"$INTERNAL_MASK
+	cat $clients_file| grep open|cut -d " " -f2>clients.tmp
+	cat clients.tmp | sed -e 's/^/'$usuario'@/g'>$clients_file
+	rm clients.tmp
+	echo "2"
+	#remove the server IP
+	cat $clients_file| grep -v $(echo $SRV_IP | cut -d "=" -f2|cut -d "'" -f2)>$clients_file
+fi |zenity --progress --pulsate --width="300" --auto-close --title="$MSG_CHECK_MACHINES" --text="$MSG_WAITING" --percentage=0 
+
+#Check if there are any client connected
+if [ ! -f $clients_file ]
+then
+	echo "$MSG_NO_CLIENTS_ONLINE"
+else
+	#Show a list with the connected clients 
+	zenity --question --text="$MSG_CLIENTS_ONLINE_PART1"$(wc -l < $clients_file)"$MSG_CLIENTS_ONLINE_PART2"$(echo $network|cut -d "/" -f1)": \n"$(cat $clients_file|cut -d "." -f4|tr -s "\n" ",")" \n$MSG_CONTINUE"
+	if [ $? -eq 0 ]
+	then
+		echo "adeu"
+		#Connect to all clients in the list
+		cssh $(cat $clients_file) #2> /dev/null
+		#rm $clients_file
+	else
+		exit 1
+	fi
+fi

@@ -1,0 +1,89 @@
+* Características
+** Sistema Operativo
+   - SO :: Linux 4.4.0-53-generic.
+   - Distro :: Linux Mint 18.1 (basado en Ubuntu 16.04).
+** Tarjetas de red
+   A lo largo de este documento se van a usar dos interfaces de red que son:
+   - enp0s3 :: interfaz externa con IP variable.
+* Configuración
+** LDAP, NSS y PAM
+*** Instalar paquetes
+    sudo apt-get install libnss-ldap libpam-ldap ldap-utils
+
+    Aparece una ventana de configuración.
+    Paso 1:
+    ldap://10.2.1.254
+    Paso 2:
+    dc=nodomain
+    Paso 3:
+    LDAP version: 3
+    Paso 4:
+    Sí, tratar las contraseñas como si fueran contraseñas normales.
+    Paso 5: Does the LDAP database require login?
+    No.
+    Paso 6: Cuenta de administración
+    cn=admin,dc=nodomain
+    Paso 7: Contraseña del admin en el servidor
+*** Crear carpetas home al iniciar sesión (pam_mkhomedir)
+    Basta con ejecutar el programa pam-auth-update y marcar que cree la
+    carpeta home (esto cambia el fichero /etc/pam.d/session-common).
+    Deberíamos ver una línea como la siguiente:
+    session optional                      pam_mkhomedir.so
+
+    Este programita usa /etc/skel para crear el home del usuario en caso
+    de que dicho home no exista.
+*** Fichero de configuración /etc/nsswitch.conf
+    Editamos este fichero y localizamos las líneas que comienzan por 
+    passwd, group y shadow. A estas líneas le añadimos al final el texto
+    ldap. De esta manera se permite el login de usuarios ldap.
+*** Fichero de configuración /etc/pam.d/common-password
+    Eliminar la opción "use_authtok" de la línea en la que está (en mi ejemplo
+    estaba en la línea 26 del fichero).
+** NFS
+*** Instalación
+    apt-get install nfs-common
+*** Todos estos pasos los hace nfs.sh que está en el proyecto rojalex
+**** Crear los puntos de montaje
+    Por ejemplo, si queremos un punto de montaje en una carpeta llamada
+    general en /nfs haríamos: sudo mkdir -p /nfs/general
+**** Permisos para los puntos de montaje
+    A la carpeta /nfs hay que darle permisos para que los usuarios ldap
+    puedan crear carpetas ahí dentro. Podemos hacer:
+    chown nobody:10000 nfs
+
+    donde 10000 es el gid del grupo del alumnado que cree en ldap y al
+    que se asigna a todo el alumnado que se crea en ldap.
+**** Montar carpeta remotas que están en el servidor 10.2.1.254
+    sudo mount 10.2.1.254:/var/nfs/general /nfs/general
+*** Montar carpetas remotas en el inicio de sesión del cliente y crear enlaces simbólicos
+    Para montar la carpeta al iniciar sesión y crear enlaces símbolicos 
+    llevamos los pasos indicados en apuntes.org donde se muestra el ejemplo
+    probado en las máquinas virtuales.
+    Básicamente se trata de crear un script que lo haga usando el módulo PAM
+    pam_exec.so para ejecutarlo cuando el usuario inicie sesión. Con PAM no
+    tenemos todavía la variable de entorno $USER ni podemos hacer uso de 
+    whoami pero disponemos de una variable de entorno que crea pam_exec.so
+    que se llama PAM_USER (entre otras). Haciendo uso de esta variable creamos
+    el script en /usr/local/bin/nfs.sh.
+
+    Para ejecutar este script, escribimos la siguiente línea al final de
+    /etc/pam.d/common-session, después de la línea que crea el home del
+    usuario (pam_mkhomedir):
+    session optional     pam_exec.so        /usr/local/bin/nfs.sh
+** MDM (Mint Display Manager)
+   Para que no aparezca el listado de usuarios en el DM hacemos dos cosas:
+   - Cambiar el tema desde Panel de configuración -> Ventana de inicio. Ahí
+     elegimos el tema MDModern.
+   - En el fichero /user/share/mdm/defaults.conf, dentro del apartado [Greeter]
+     buscamos la variable Browser y lo ponemos igual a false.
+** Epoptes
+*** Editar fichero /etc/hosts y añadir la línea
+    10.2.1.254	server
+*** Instalar epoptes
+    sudo apt-get install epoptes-client
+    sudo epoptes-client -c
+
+    Tras ellos hay que reiniciar.
+** Cluster SSH
+*** Instalar openssh-server
+    sudo apt-get install openssh-server
