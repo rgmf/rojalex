@@ -26,7 +26,7 @@
     Paso 7: Contraseña del admin en el servidor
 *** Crear carpetas home al iniciar sesión (pam_mkhomedir)
     Basta con ejecutar el programa pam-auth-update y marcar que cree la
-    carpeta home (esto cambia el fichero /etc/pam.d/session-common).
+    carpeta home (esto cambia el fichero /etc/pam.d/common-session).
     Deberíamos ver una línea como la siguiente:
     session optional                      pam_mkhomedir.so
 
@@ -81,6 +81,9 @@
     10.2.1.254	server
 *** Instalar epoptes
     sudo apt-get install epoptes-client
+
+    Y, una vez instalado epoptes en el servidor (server), entonces se
+    debe ejecutar la siguiente orden:
     sudo epoptes-client -c
 
     Tras ellos hay que reiniciar.

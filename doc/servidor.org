@@ -122,7 +122,6 @@
      elegimos el tema MDModern.
    - En el fichero /user/share/mdm/defaults.conf, dentro del apartado [Greeter]
      buscamos la variable Browser y lo ponemos igual a false.
-
 ** Epoptes
 *** Instalar
     sudo apt-get install epoptes
@@ -135,6 +134,7 @@
 ** Cluster SSH
 *** Instalar
     sudo apt-get install clusterssh
+    sudo apt-get install nmap
 *** Copiar lliurex-admin-clients a su destino
     El script/programita que lanza cluster ssh hay que copiarlo en alguna
     carpeta apropiada para su ejecución, por ejemplo, dentro de:
