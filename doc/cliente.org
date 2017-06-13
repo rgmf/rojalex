@@ -74,8 +74,9 @@
    Para que no aparezca el listado de usuarios en el DM hacemos dos cosas:
    - Cambiar el tema desde Panel de configuración -> Ventana de inicio. Ahí
      elegimos el tema MDModern.
-   - En el fichero /user/share/mdm/defaults.conf, dentro del apartado [Greeter]
-     buscamos la variable Browser y lo ponemos igual a false.
+   - En el fichero /user/share/mdm/defaults.conf buscamos la variable
+     DisplayLastLogin y la ponemos igual a false. Y la variable 
+     SelectLastLogin y la ponemos igual a false.
 ** Epoptes
 *** Editar fichero /etc/hosts y añadir la línea
     10.2.1.254	server
@@ -90,3 +91,13 @@
 ** Cluster SSH
 *** Instalar openssh-server
     sudo apt-get install openssh-server
+** Usuario alumno
+   Hay que crear un usuario alumno regular para poder entrar al sistema con
+   un usuario local.
+** Google como página de inicio
+   Se llevan a cabo los siguientes pasos:
+   - En el usuario administrador, por ejemplo, se cambia la página de inicio
+     de Firefox. Esto deja rastro en el fichero siguiente en el home del 
+     usuario: .mozilla/firefox/mwad0hks.default/prefs.js
+   - Se coge dicho fichero y se copia en /etc/skel y se cambian los permisos
+     para que todos los usuarios puedan leerlo.
