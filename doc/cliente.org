@@ -101,3 +101,12 @@
      usuario: .mozilla/firefox/mwad0hks.default/prefs.js
    - Se coge dicho fichero y se copia en /etc/skel y se cambian los permisos
      para que todos los usuarios puedan leerlo.
+* Instalación de Scratch 2 Offline Editor
+  Se siguen los pasos de la página web de Scratch a la que llegamos buscando
+  en Google usando el patrón de búsqueda: scratch 2 offline editor download.
+
+  Antes hay que crear los enlaces símbolicos siguientes o no se podrá instalar
+  Adobe Air:
+
+  sudo ln -s /usr/lib/x86_64-linux-gnu/libgnome-keyring.so.0 /usr/lib/libgnome-keyring.so.0
+  sudo ln -s /usr/lib/x86_64-linux-gnu/libgnome-keyring.so.0.2.0 /usr/lib/libgnome-keyring.so.0.2.0
