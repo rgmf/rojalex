@@ -15,6 +15,7 @@
 # - La ruta del fichero csv.
 # - El siguiente uidNumber libre en el directorio (el gidNumber será el mismo).
 # - Ruta al directorio donde se crean las carpetas remotas de los usuarios.
+# - La contraseña del administrador de LDAP.
 # - El delimitador usado en el fichero csv (opcional, por defecto se usa el
 # espacio).
 #
@@ -37,10 +38,10 @@ def get_username(row):
         return row['Login']
     elif 'login' in row:
         return row['login']
-    elif 'Nombre' in row:
-        return row['Nombre']
-    elif 'nombre' in row:
-        return row['nombre']
+    elif 'Username' in row:
+        return row['Ussername']
+    elif 'username' in row:
+        return row['username']
     else:
         return None
 
@@ -81,15 +82,17 @@ def get_last_name(row):
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument("-f", "--file", required=True, help="fichero CVS con los datos del alumnado")
+parser.add_argument("-f", "--file", required=True, help="fichero CSV con los datos del alumnado (login | username, password, nombre | firstname, apellidos | lastname)")
 parser.add_argument("-u", "--uidNumber", required=True, type=int, help="el siguiente uidNumber libre en el directorio LDAP para el organizationalUnit usuarios")
 parser.add_argument("-d", "--directory", required=True, help="el directorio donde se van a crear las carpetas remotas de los usuarios (su nube)")
+parser.add_argument("-p", "--admin-password", required=True, help="la contraseña del administrador de LDAP")
 parser.add_argument("-c", "--char-delimiter", help="el delimitador utilizado en el fichero CSV (por defecto se usa el espacio")
 args = parser.parse_args()
 
 fname = args.file
 next_uid = args.uidNumber
 directory = args.directory
+admin_password = args.admin_password
 char_delimiter = ' '
 if args.char_delimiter:
     char_delimiter = args.char_delimiter
@@ -100,7 +103,7 @@ faddaluldif = "add_alu_grpalu.ldif"
 with open(fname) as f, open(faluldif, 'w') as fd1, open(faddaluldif, 'w') as fd2:
     # Abre la conexión con ldap.
     server = ldap3.Server('localhost')
-    conn = ldap3.Connection(server, 'cn=admin,dc=nodomain', 'ragonalex', auto_bind=True)
+    conn = ldap3.Connection(server, 'cn=admin,dc=nodomain', admin_password, auto_bind=True)
     if not conn.bind():
         print("No se ha podido conectar a LDAP")
         exit(-1)
@@ -112,7 +115,7 @@ with open(fname) as f, open(faluldif, 'w') as fd1, open(faddaluldif, 'w') as fd2
         username = get_username(row)
         password = get_password(row)
         first_name = get_first_name(row)
-        last_name = get_last_name(row)        
+        last_name = get_last_name(row)
 
         if username and password and first_name and last_name:
             # Realiza la búsqueda en el directorio para comprobar si existe ya un usuario con
@@ -156,7 +159,7 @@ with open(fname) as f, open(faluldif, 'w') as fd1, open(faddaluldif, 'w') as fd2
                 os.makedirs(os.path.join(directory, username + '/nube'), exist_ok=True)
                 os.chown(os.path.join(directory, username), next_uid, next_uid)
                 os.chown(os.path.join(directory, username + '/nube'), next_uid, next_uid)
-                
+
                 # Se añade al usuario al directorio LDAP.
                 conn.add('uid={0},ou=usuarios,dc=nodomain'.format(username),
                          ['person', 'posixAccount'],
@@ -181,7 +184,7 @@ with open(fname) as f, open(faluldif, 'w') as fd1, open(faddaluldif, 'w') as fd2
                 fd1.write("userPassword: {0}\n".format(password))
                 fd1.write("loginShell: /bin/bash\n")
                 fd1.write("homeDirectory: /home/{0}\n\n".format(username))
-                
+
                 # Se modifica el usuario para añadirlo al grupo alugrp.
                 conn.modify('cn=alugrp,ou=grupos,dc=nodomain',
                             {'memberuid': [(ldap3.MODIFY_ADD, [username])]})
@@ -191,7 +194,7 @@ with open(fname) as f, open(faluldif, 'w') as fd1, open(faddaluldif, 'w') as fd2
                 fd2.write("changetype: modify\n")
                 fd2.write("add: memberuid\n")
                 fd2.write("memberuid: {0}\n\n".format(username))
-                
+
                 next_uid = next_uid + 1
 
         else:

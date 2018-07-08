@@ -8,8 +8,8 @@ mkdir -p /nfs/compartido
 mount | grep /nfs/${PAM_USER}/nube > /dev/null;
 if [ $? -ne 0 ];
 then
-    echo "Se intenta montar la nube del usuario ${PAM_USER}" > /tmp/nfs_sh.log
-    
+    echo "Se intenta montar la nube del usuario ${PAM_USER}" >> /tmp/nfs_sh.log
+
     # ¡AVISO! Aquí se puede dar que la carpeta remota no exista en el servidor
     # por lo que la orden de montar daría un error y ya no hacemos nada más.
     # En el else borramos la carpeta donde íbamos a montar la nube del usuario.
@@ -17,12 +17,12 @@ then
     if [ $? -eq 0 ];
     then
 	echo "Se montó correctamente la nube del usuario ${PAM_USER}" >> /tmp/nfs_sh.log
-	
+
 	mount | grep /nfs/compartido > /dev/null;
 	if [ $? -ne 0 ];
 	then
 	    echo "Se monta la carpeta compartida" >> /tmp/nfs_sh.log
-	    
+
 	    mount 10.2.1.254:/var/nfs/compartido /nfs/compartido
 	fi
 

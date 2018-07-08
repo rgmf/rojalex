@@ -38,10 +38,22 @@
 *** Desinstalar network-manager para evitar conflictos:
    apt-get remove network-manager
    apt-get purge network-manager
+
+   Al desinstalar estos dos paquetes se desinstala también gnome-control-center
 *** Resolv.conf
    Añadir a /etc/resolv.conf las DNS de conselleria: (OJO: Cambiar por las DNS de conselleria)
-   echo "nameserver 8.8.8.8" | sudo tee /etc/resolvconf/resolv.conf.d/tail
-   echo "nameserver 8.8.4.4" | sudo tee -a /etc/resolvconf/resolv.conf.d/tail
+
+   Se puede hacer con estos dos comandos:
+   echo "nameserver 172.27.111.5" | sudo tee /etc/resolvconf/resolv.conf.d/tail
+   echo "nameserver 172.27.111.6" | sudo tee -a /etc/resolvconf/resolv.conf.d/tail
+
+   O, mejor, o si falla, escribiendo en /etc/resolv.conf las dos líneas siguientes (que aparezcan solo estas dos líneas):
+   nameserver 172.27.111.5
+   nameserver 172.27.111.6
+
+   Las DNS de Conselleria son:
+   172.27.111.5
+   172.27.111.6
 *** /etc/hosts
     En este fichero hay que colocar el contenido seguiente (se puede hace una copia del fichero).
     127.0.0.1	localhost
@@ -68,20 +80,34 @@
     dhcp-range=10.2.1.100,10.2.1.199,12h
 ** LDAP
 *** Instalar openldap
-    sudo apt-get install slapd ldap-utils
+    sudo apt-get install slapd ldap-utils python3-ldap3
 *** Crear la estructura base del directorio
     Para las pruebas he creado dos organizationalUnit:
     - ou: usuarios :: donde almacenar usuarios.
     - ou: grupos :: donde almacenar grupos.
     Se tienen los ejemplos dentro del proyecto rojalex, en la carpeta 
     ldif-ejemplos.
+
+    Por ejemplo, para añadir el contenido ldap del un fichero base.ldif utilizando el usuario admin en el dc nodomain haría tal que así:
+    ldapadd -x -W -D "cn=admin,dc=nodomain" -f base.ldif
 *** Crear grupos
     Se crea un grupo alugrp dentro del ou "usuarios". Este será el grupo al
     que se asignan los alumnos creados mediante el script que hay en el
     proyecto rojalex.
+
+    En la carpeta ldif-ejemplos se tiene un fichero alugrp.ldif que se puede utilizar. Para añadir, igual que antes:
+    ldapadd -x -W -D "cn=admin,dc=nodomain" -f alugrp.ldif
 *** Crear usuarios y añadirlos al grupo alugrp
-    Se hace con el script que hay en el proyecto rojalex.
+    Se hace con el script que hay en el proyecto rojalex (cvs2ldap.py).
+
+    Con este script se añaden los usuarios que se indican en un fichero CSV al directorio de LDAP.
 ** NFS
+*** Gran recurso online (muy buen tutorial)
+    Se puede echar un vistazo a este tutorial. Está muy bien y, además, se indican algunas órdenes interesantes para comprobar si está nfs funcionando y demás.
+
+    https://enavas.blogspot.com/2008/12/compartir-archivos-entre-mquinas-linux.html
+
+    He guardado, además, esta página web en la carpeta doc.
 *** Instalación
     apt-get install nfs-kernel-server
 *** Crear carpeta compartida
@@ -107,8 +133,8 @@
     que clientes (IP) se puede montar, etc.
 
     Habría que escribir la línea siguiente en /etc/exports:
-    /var/nfs                 10.2.1.0(rw,sync,no_subtree_check)
-    /var/nfs/compartido      10.2.1.0(ro,sync,no_subtree_check)
+    /var/nfs                 10.2.1.0/24(rw,sync,no_subtree_check)
+    /var/nfs/compartido      10.2.1.0/24(ro,sync,no_subtree_check)
 *** Firewall en el servidor
     Se puede comprobar el estado del firewall en el servidor con la orden:
     sudo ufw status
@@ -127,7 +153,7 @@
     sudo apt-get install epoptes
 *** Añadir usuarios al grupo epoptes
     Añadir los usuarios que autoricemos a controlar epoptes al grupo epoptes:
-    gpasswd -a username administrador epoptes
+    gpasswd -a administrador epoptes
 
     (si se quiere usar con otros usuarios, como el usuario “profesor” habría
     que añadirlos también)
@@ -138,7 +164,9 @@
 *** Copiar lliurex-admin-clients a su destino
     El script/programita que lanza cluster ssh hay que copiarlo en alguna
     carpeta apropiada para su ejecución, por ejemplo, dentro de:
-    /usr/local/bin
+    /usr/local/sbin
+*** Dar permisos de ejecución a lliurex-admin-clients
+    sudo chmod a+x /usr/local/sbin/lliurex-admin-clients
 * Instalación de Scratch 2 Offline Editor
   Se siguen los pasos de la página web de Scratch a la que llegamos buscando
   en Google usando el patrón de búsqueda: scratch 2 offline editor linux.
