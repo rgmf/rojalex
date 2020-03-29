@@ -105,7 +105,8 @@
 *** Gran recurso online (muy buen tutorial)
     Se puede echar un vistazo a este tutorial. Está muy bien y, además, se indican algunas órdenes interesantes para comprobar si está nfs funcionando y demás.
 
-    https://enavas.blogspot.com/2008/12/compartir-archivos-entre-mquinas-linux.html
+    https://enavas.blogspot.com/2008/12/compartir-archivos-entre-mquinas-linux.html (ya no funciona)
+    https://algodelinux.com/index.php/2008/12/compartir-archivos-entre-mquinas-linux/?cn-reloaded=1
 
     He guardado, además, esta página web en la carpeta doc.
 *** Instalación
